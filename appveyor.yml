@@ -1,0 +1,48 @@
+version: 1.0.0.{build}
+skip_branch_with_pr: true
+image: Visual Studio 2017
+
+# clone directory
+clone_folder: c:\project
+  
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform: Any CPU
+
+# build Configuration, i.e. Debug, Release, etc.
+configuration: Release
+
+before_build:
+- cmd: nuget restore
+
+build:
+  verbosity: minimal
+  
+install:
+# NSIS Paths
+# https://www.appveyor.com/docs/build-environment/#tools
+- set PATH=%PATH%;C:\Program Files (x86)\NSIS;
+
+# NSIS Plugin (NsisDotNetChecker)
+- appveyor DownloadFile https://github.com/ReVolly/NsisDotNetChecker/archive/master.zip
+- 7z e master.zip -o"C:\Program Files (x86)\NSIS\Include" DotNetChecker.nsh -r
+- 7z e master.zip -o"C:\Program Files (x86)\NSIS\Plugins\x86-ansi" DotNetChecker.dll -r
+
+after_build:
+- cmd: 7z a Gateway.Sample.Application.Portable.zip "c:\project\Gateway Sample Application\bin\Release\*"
+- cmd: makensis.exe "c:\project\Gateway Sample Application\Setup\Gateway Sample Application.nsi"
+
+artifacts:
+- path: Gateway.Sample.Application.Setup.exe
+- path: Gateway.Sample.Application.Portable.zip
+
+deploy:
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  description: '// TODO: Write Release Notes'
+  provider: GitHub
+  auth_token:
+    secure: WHW27Nvc8zNhfyhxIYdl/NwbrkFzvSX0vE4/CS8iByPXM6rcztWhUrDXJ7eejLBY
+  draft: false
+  prerelease: false
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only

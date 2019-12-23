@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Gateway_Sample_Application.Properties;
+using static SMS.API;
 
 namespace Gateway_Sample_Application
 {
@@ -19,7 +20,7 @@ namespace Gateway_Sample_Application
         {
             try
             {
-                SMS.API.SendSingleMessage(textBoxNumber.Text, textBoxMessage.Text);
+                SendSingleMessage(textBoxNumber.Text, textBoxMessage.Text, "1|0");
                 MessageBox.Show("Success");
             }
             catch (Exception exception)
@@ -43,7 +44,7 @@ namespace Gateway_Sample_Application
 
             try
             {
-                SMS.API.SendMessages(messages, false);
+                SendMessages(messages);
                 MessageBox.Show("Success");
             }
             catch (Exception exception)

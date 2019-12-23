@@ -12,8 +12,15 @@ namespace SMS
 {
     static class API
     {
-        private static string Server = Settings.Default.SERVER;
-        private static string Key = Settings.Default.API_KEY;
+        private static readonly string Server = Settings.Default.SERVER;
+        private static readonly string Key = Settings.Default.API_KEY;
+
+        public enum Option
+        {
+            USE_SPECIFIED = 0,
+            USE_ALL_DEVICES = 1,
+            USE_ALL_SIMS = 2
+        }
 
         /// <summary>
         /// Send single message to specific mobile number.
@@ -23,7 +30,7 @@ namespace SMS
         /// <param name="device">The ID of a device you want to use to send this message.</param>
         /// <exception>If there is an error while sending a message.</exception>
         /// <returns>The dictionary containing information about the message.</returns>
-        public static Dictionary<string, object> SendSingleMessage(string number, string message, int device = 0)
+        public static Dictionary<string, object> SendSingleMessage(string number, string message, string device = "0")
         {
             var values = new Dictionary<string, object>
             {
@@ -40,18 +47,20 @@ namespace SMS
         /// Send multiple messages to different mobile numbers.
         /// </summary>
         /// <param name="messages">The array containing numbers and messages.</param>
-        /// <param name="useAvailable">Set this to true if you want to use all available devices to send these messages.</param>
+        /// <param name="option">Set this to USE_SPECIFIED if you want to use devices and SIMs specified in devices argument.
+        /// Set this to USE_ALL_DEVICES if you want to use all available devices and their default SIM to send messages.
+        /// Set this to USE_ALL_SIMS if you want to use all available devices and all their SIMs to send messages.</param>
         /// <param name="devices">The array of ID of devices you want to use to send these messages.</param>
         /// <exception>If there is an error while sending messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages, bool useAvailable = true, int[] devices = null)
+        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages, Option option = Option.USE_SPECIFIED, string[] devices = null)
         {
             var values = new Dictionary<string, object>
             {
                 { "messages", JsonConvert.SerializeObject(messages)},
                 { "key", Key },
                 { "devices", devices },
-                { "useAvailable", useAvailable },
+                { "option", (int) option }
             };
 
             return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"]);
@@ -91,6 +100,25 @@ namespace SMS
             return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
         }
 
+        /// <summary>
+        /// Get remaining message credits.
+        /// </summary>
+        /// <exception>If there is an error while getting message credits.</exception>
+        /// <returns>The amount of message credits left.</returns>
+        public static string GetBalance()
+        {
+            var values = new Dictionary<string, object>
+            {
+                {"key", Key}
+            };
+            JToken credits = GetResponse($"{Server}/services/send.php", values)["credits"];
+            if (credits.Type != JTokenType.Null)
+            {
+                return credits.ToString();
+            }
+            return "Unlimited";
+        }
+
         private static Dictionary<string, object>[] GetMessages(JToken messagesJToken)
         {
             JArray jArray = (JArray)messagesJToken;
@@ -122,29 +150,30 @@ namespace SMS
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                var jsonResponse = new StreamReader(response.GetResponseStream()).ReadToEnd();
-                try
+                using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
                 {
-                    JObject jObject = JObject.Parse(jsonResponse);
-                    if ((bool)jObject["success"])
+                    var jsonResponse = streamReader.ReadToEnd();
+                    try
                     {
-                        return jObject["data"];
+                        JObject jObject = JObject.Parse(jsonResponse);
+                        if ((bool)jObject["success"])
+                        {
+                            return jObject["data"];
+                        }
+                        throw new Exception(jObject["error"]["message"].ToString());
                     }
-                    throw new Exception(jObject["error"]["message"].ToString());
-                }
-                catch (JsonReaderException)
-                {
-                    if (string.IsNullOrEmpty(jsonResponse))
+                    catch (JsonReaderException)
                     {
-                        throw new InvalidDataException("Missing data in request. Please provide all the required information to send messages.");
+                        if (string.IsNullOrEmpty(jsonResponse))
+                        {
+                            throw new InvalidDataException("Missing data in request. Please provide all the required information to send messages.");
+                        }
+                        throw new Exception(jsonResponse);
                     }
-                    throw new Exception(jsonResponse);
                 }
             }
-            else
-            {
-                throw new WebException($"HTTP Error : {(int)response.StatusCode} {response.StatusCode}");
-            }
+
+            throw new WebException($"HTTP Error : {(int)response.StatusCode} {response.StatusCode}");
         }
 
         private static string CreateDataString(Dictionary<string, object> data)

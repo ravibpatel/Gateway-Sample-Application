@@ -147,7 +147,7 @@
             this.propertyGridSettings.Name = "propertyGridSettings";
             this.propertyGridSettings.Size = new System.Drawing.Size(547, 261);
             this.propertyGridSettings.TabIndex = 0;
-            this.propertyGridSettings.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.propertyGridSettings_PropertyValueChanged);
+            this.propertyGridSettings.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.PropertyGridSettings_PropertyValueChanged);
             // 
             // FormMain
             // 

@@ -20,7 +20,16 @@ namespace Gateway_Sample_Application
         {
             try
             {
+                //Dictionary<string, object>[] messages = SMS.API.SendMessageToContactsList(1, textBoxMessage.Text, SMS.API.Option.USE_SPECIFIED, new[] {"1"});
                 SendSingleMessage(textBoxNumber.Text, textBoxMessage.Text, "1|0");
+                var contact = AddContact(1, textBoxNumber.Text);
+                //contact = UnsubscribeContact(1, textBoxNumber.Text);
+                //StringBuilder stringBuilder = new StringBuilder();
+                //foreach (var key in contact.Keys)
+                //{
+                //    stringBuilder.AppendLine($"{key}=>{contact[key]}");
+                //}
+                //MessageBox.Show(stringBuilder.ToString());
                 MessageBox.Show("Success");
             }
             catch (Exception exception)
@@ -53,7 +62,7 @@ namespace Gateway_Sample_Application
             }
         }
 
-        private void propertyGridSettings_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
+        private void PropertyGridSettings_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             Settings.Default.Save();
         }

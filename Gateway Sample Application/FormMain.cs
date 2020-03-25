@@ -21,8 +21,9 @@ namespace Gateway_Sample_Application
             try
             {
                 //Dictionary<string, object>[] messages = SMS.API.SendMessageToContactsList(1, textBoxMessage.Text, SMS.API.Option.USE_SPECIFIED, new[] {"1"});
-                SendSingleMessage(textBoxNumber.Text, textBoxMessage.Text, "1|0");
-                var contact = AddContact(1, textBoxNumber.Text);
+                long timestamp = (long) DateTime.UtcNow.AddMinutes(2).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+                SendSingleMessage(textBoxNumber.Text, textBoxMessage.Text, null, timestamp);
+                //var contact = AddContact(1, textBoxNumber.Text);
                 //contact = UnsubscribeContact(1, textBoxNumber.Text);
                 //StringBuilder stringBuilder = new StringBuilder();
                 //foreach (var key in contact.Keys)
@@ -53,7 +54,8 @@ namespace Gateway_Sample_Application
 
             try
             {
-                SendMessages(messages);
+                long timestamp = (long)DateTime.UtcNow.AddMinutes(2).Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+                SendMessages(messages, Option.USE_SPECIFIED, null, timestamp);
                 MessageBox.Show("Success");
             }
             catch (Exception exception)

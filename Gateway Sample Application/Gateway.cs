@@ -28,14 +28,16 @@ namespace SMS
         /// <param name="number">The mobile number where you want to send message.</param>
         /// <param name="message">The message you want to send.</param>
         /// <param name="device">The ID of a device you want to use to send this message.</param>
+        /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
         /// <exception>If there is an error while sending a message.</exception>
         /// <returns>The dictionary containing information about the message.</returns>
-        public static Dictionary<string, object> SendSingleMessage(string number, string message, string device = "0")
+        public static Dictionary<string, object> SendSingleMessage(string number, string message, string device = "0", long? schedule = null)
         {
             var values = new Dictionary<string, object>
             {
                 { "number", number},
                 { "message", message},
+                { "schedule", schedule },
                 { "key", Key },
                 { "devices", device }
             };
@@ -51,13 +53,15 @@ namespace SMS
         /// Set this to USE_ALL_DEVICES if you want to use all available devices and their default SIM to send messages.
         /// Set this to USE_ALL_SIMS if you want to use all available devices and all their SIMs to send messages.</param>
         /// <param name="devices">The array of ID of devices you want to use to send these messages.</param>
+        /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
         /// <exception>If there is an error while sending messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages, Option option = Option.USE_SPECIFIED, string[] devices = null)
+        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages, Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null)
         {
             var values = new Dictionary<string, object>
             {
                 { "messages", JsonConvert.SerializeObject(messages)},
+                { "schedule", schedule },
                 { "key", Key },
                 { "devices", devices },
                 { "option", (int) option }
@@ -75,14 +79,16 @@ namespace SMS
         /// Set this to USE_ALL_DEVICES if you want to use all available devices and their default SIM to send messages.
         /// Set this to USE_ALL_SIMS if you want to use all available devices and all their SIMs to send messages.</param>
         /// <param name="devices">The array of ID of devices you want to use to send these messages.</param>
+        /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
         /// <exception>If there is an error while sending messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] SendMessageToContactsList(int listID, string message, Option option = Option.USE_SPECIFIED, string[] devices = null)
+        public static Dictionary<string, object>[] SendMessageToContactsList(int listID, string message, Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null)
         {
             var values = new Dictionary<string, object>
             {
                 { "listID", listID},
                 { "message", message},
+                { "schedule", schedule },
                 { "key", Key },
                 { "devices", devices },
                 { "option", (int) option }

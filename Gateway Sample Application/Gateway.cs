@@ -54,9 +54,10 @@ namespace SMS
         /// Set this to USE_ALL_SIMS if you want to use all available devices and all their SIMs to send messages.</param>
         /// <param name="devices">The array of ID of devices you want to use to send these messages.</param>
         /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
+        /// <param name="useRandomDevice">Set it to true if you want to send messages using 1 random device from the selected devices.</param>
         /// <exception>If there is an error while sending messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages, Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null)
+        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages, Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null, bool useRandomDevice = false)
         {
             var values = new Dictionary<string, object>
             {
@@ -64,7 +65,8 @@ namespace SMS
                 { "schedule", schedule },
                 { "key", Key },
                 { "devices", devices },
-                { "option", (int) option }
+                { "option", (int) option },
+                { "useRandomDevice", useRandomDevice }
             };
 
             return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"]);
@@ -126,6 +128,27 @@ namespace SMS
             {
                 { "key", Key },
                 { "groupId", groupID }
+            };
+
+            return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
+        }
+
+        /// <summary>
+        /// Get messages using the status.
+        /// </summary>
+        /// <param name="status">The status of messages you want to retrieve.</param>
+        /// <param name="startTimestamp">Search for messages sent or received after this time.</param>
+        /// <param name="endTimestamp">Search for messages sent or received before this time.</param>
+        /// <exception>If there is an error while getting messages.</exception>
+        /// <returns>The array containing messages.</returns>
+        public static Dictionary<string, object>[] GetMessagesByStatus(string status, long? startTimestamp = null, long? endTimestamp = null)
+        {
+            var values = new Dictionary<string, object>
+            {
+                { "key", Key },
+                { "status", status },
+                { "startTimestamp", startTimestamp },
+                { "endTimestamp", endTimestamp }
             };
 
             return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);

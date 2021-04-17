@@ -29,17 +29,22 @@ namespace SMS
         /// <param name="message">The message you want to send.</param>
         /// <param name="device">The ID of a device you want to use to send this message.</param>
         /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
+        /// <param name="isMMS">Set it to true if you want to send MMS message instead of SMS.</param>
+        /// <param name="attachments">Comma separated list of image links you want to attach to the message. Only works for MMS messages.</param>
         /// <exception>If there is an error while sending a message.</exception>
         /// <returns>The dictionary containing information about the message.</returns>
-        public static Dictionary<string, object> SendSingleMessage(string number, string message, string device = "0", long? schedule = null)
+        public static Dictionary<string, object> SendSingleMessage(string number, string message, string device = "0",
+            long? schedule = null, bool isMMS = false, string attachments = null)
         {
             var values = new Dictionary<string, object>
             {
-                { "number", number},
-                { "message", message},
-                { "schedule", schedule },
-                { "key", Key },
-                { "devices", device }
+                {"number", number},
+                {"message", message},
+                {"schedule", schedule},
+                {"key", Key},
+                {"devices", device},
+                {"type", isMMS ? "mms" : "sms"},
+                {"attachments", attachments}
             };
 
             return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"])[0];
@@ -54,19 +59,21 @@ namespace SMS
         /// Set this to USE_ALL_SIMS if you want to use all available devices and all their SIMs to send messages.</param>
         /// <param name="devices">The array of ID of devices you want to use to send these messages.</param>
         /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
-        /// <param name="useRandomDevice">Set it to true if you want to send messages using 1 random device from the selected devices.</param>
+        /// <param name="useRandomDevice">Set it to true if you want to send messages using only one random device from selected devices.</param>
         /// <exception>If there is an error while sending messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages, Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null, bool useRandomDevice = false)
+        public static Dictionary<string, object>[] SendMessages(List<Dictionary<string, string>> messages,
+            Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null,
+            bool useRandomDevice = false)
         {
             var values = new Dictionary<string, object>
             {
-                { "messages", JsonConvert.SerializeObject(messages)},
-                { "schedule", schedule },
-                { "key", Key },
-                { "devices", devices },
-                { "option", (int) option },
-                { "useRandomDevice", useRandomDevice }
+                {"messages", JsonConvert.SerializeObject(messages)},
+                {"schedule", schedule},
+                {"key", Key},
+                {"devices", devices},
+                {"option", (int) option},
+                {"useRandomDevice", useRandomDevice}
             };
 
             return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"]);
@@ -82,18 +89,24 @@ namespace SMS
         /// Set this to USE_ALL_SIMS if you want to use all available devices and all their SIMs to send messages.</param>
         /// <param name="devices">The array of ID of devices you want to use to send these messages.</param>
         /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
+        /// <param name="isMMS">Set it to true if you want to send MMS message instead of SMS.</param>
+        /// <param name="attachments">Comma separated list of image links you want to attach to the message. Only works for MMS messages.</param>
         /// <exception>If there is an error while sending messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] SendMessageToContactsList(int listID, string message, Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null)
+        public static Dictionary<string, object>[] SendMessageToContactsList(int listID, string message,
+            Option option = Option.USE_SPECIFIED, string[] devices = null, long? schedule = null, bool isMMS = false,
+            string attachments = null)
         {
             var values = new Dictionary<string, object>
             {
-                { "listID", listID},
-                { "message", message},
-                { "schedule", schedule },
-                { "key", Key },
-                { "devices", devices },
-                { "option", (int) option }
+                {"listID", listID},
+                {"message", message},
+                {"schedule", schedule},
+                {"key", Key},
+                {"devices", devices},
+                {"option", (int) option},
+                {"type", isMMS ? "mms" : "sms"},
+                {"attachments", attachments}
             };
 
             return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"]);
@@ -109,8 +122,8 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                { "key", Key },
-                { "id", id }
+                {"key", Key},
+                {"id", id}
             };
 
             return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"])[0];
@@ -126,8 +139,8 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                { "key", Key },
-                { "groupId", groupID }
+                {"key", Key},
+                {"groupId", groupID}
             };
 
             return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
@@ -141,36 +154,76 @@ namespace SMS
         /// <param name="endTimestamp">Search for messages sent or received before this time.</param>
         /// <exception>If there is an error while getting messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] GetMessagesByStatus(string status, long? startTimestamp = null, long? endTimestamp = null)
+        public static Dictionary<string, object>[] GetMessagesByStatus(string status, long? startTimestamp = null,
+            long? endTimestamp = null)
         {
             var values = new Dictionary<string, object>
             {
-                { "key", Key },
-                { "status", status },
-                { "startTimestamp", startTimestamp },
-                { "endTimestamp", endTimestamp }
+                {"key", Key},
+                {"status", status},
+                {"startTimestamp", startTimestamp},
+                {"endTimestamp", endTimestamp}
             };
 
             return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
         }
 
         /// <summary>
-        /// Get remaining message credits.
+        /// Resend a message using the ID.
         /// </summary>
-        /// <exception>If there is an error while getting message credits.</exception>
-        /// <returns>The amount of message credits left.</returns>
-        public static string GetBalance()
+        /// <param name="id">The ID of a message you want to resend.</param>
+        /// <exception>If there is an error while resending a message.</exception>
+        /// <returns>The dictionary containing information about the message.</returns>
+        public static Dictionary<string, object> ResendMessageByID(int id)
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key}
+                {"key", Key},
+                {"id", id}
             };
-            JToken credits = GetResponse($"{Server}/services/send.php", values)["credits"];
-            if (credits.Type != JTokenType.Null)
+
+            return GetMessages(GetResponse($"{Server}/services/resend.php", values)["messages"])[0];
+        }
+
+        /// <summary>
+        /// Resend messages using the Group ID.
+        /// </summary>
+        /// <param name="groupID">The group ID of messages you want to resend.</param>
+        /// <param name="status">The status of messages you want to resend.</param>
+        /// <exception>If there is an error while resending messages.</exception>
+        /// <returns>The array containing messages.</returns>
+        public static Dictionary<string, object>[] ResendMessagesByGroupID(string groupID, string status = null)
+        {
+            var values = new Dictionary<string, object>
             {
-                return credits.ToString();
-            }
-            return "Unlimited";
+                {"key", Key},
+                {"groupId", groupID},
+                {"status", status}
+            };
+
+            return GetMessages(GetResponse($"{Server}/services/resend.php", values)["messages"]);
+        }
+
+        /// <summary>
+        /// Resend messages using the status.
+        /// </summary>
+        /// <param name="status">The status of messages you want to resend.</param>
+        /// <param name="startTimestamp">Resend messages sent or received after this time.</param>
+        /// <param name="endTimestamp">Resend messages sent or received before this time.</param>
+        /// <exception>If there is an error while resending messages.</exception>
+        /// <returns>The array containing messages.</returns>
+        public static Dictionary<string, object>[] ResendMessagesByStatus(string status, long? startTimestamp = null,
+            long? endTimestamp = null)
+        {
+            var values = new Dictionary<string, object>
+            {
+                {"key", Key},
+                {"status", status},
+                {"startTimestamp", startTimestamp},
+                {"endTimestamp", endTimestamp}
+            };
+
+            return GetMessages(GetResponse($"{Server}/services/resend.php", values)["messages"]);
         }
 
         /// <summary>
@@ -181,7 +234,8 @@ namespace SMS
         /// <param name="name">The name of the contact.</param>
         /// <param name="resubscribe">Set it to true if you want to resubscribe this contact if it already exists.</param>
         /// <returns>A dictionary containing details about a newly added contact.</returns>
-        public static Dictionary<string, object> AddContact(int listID, string number, string name = null, bool resubscribe = false)
+        public static Dictionary<string, object> AddContact(int listID, string number, string name = null,
+            bool resubscribe = false)
         {
             var values = new Dictionary<string, object>
             {
@@ -210,24 +264,45 @@ namespace SMS
                 {"number", number},
                 {"unsubscribe", '1'}
             };
-            JObject jObject = (JObject)GetResponse($"{Server}/services/manage-contacts.php", values)["contact"];
+            JObject jObject = (JObject) GetResponse($"{Server}/services/manage-contacts.php", values)["contact"];
             return jObject.ToObject<Dictionary<string, object>>();
+        }
+
+        /// <summary>
+        /// Get remaining message credits.
+        /// </summary>
+        /// <exception>If there is an error while getting message credits.</exception>
+        /// <returns>The amount of message credits left.</returns>
+        public static string GetBalance()
+        {
+            var values = new Dictionary<string, object>
+            {
+                {"key", Key}
+            };
+            JToken credits = GetResponse($"{Server}/services/send.php", values)["credits"];
+            if (credits.Type != JTokenType.Null)
+            {
+                return credits.ToString();
+            }
+
+            return "Unlimited";
         }
 
         private static Dictionary<string, object>[] GetMessages(JToken messagesJToken)
         {
-            JArray jArray = (JArray)messagesJToken;
+            JArray jArray = (JArray) messagesJToken;
             var messages = new Dictionary<string, object>[jArray.Count];
             for (var index = 0; index < jArray.Count; index++)
             {
                 messages[index] = jArray[index].ToObject<Dictionary<string, object>>();
             }
+
             return messages;
         }
 
         private static JToken GetResponse(string url, Dictionary<string, object> postData)
         {
-            var request = (HttpWebRequest)WebRequest.Create(url);
+            var request = (HttpWebRequest) WebRequest.Create(url);
             var dataString = CreateDataString(postData);
             var data = Encoding.UTF8.GetBytes(dataString);
 
@@ -241,7 +316,7 @@ namespace SMS
                 stream.Write(data, 0, data.Length);
             }
 
-            var response = (HttpWebResponse)request.GetResponse();
+            var response = (HttpWebResponse) request.GetResponse();
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -251,24 +326,27 @@ namespace SMS
                     try
                     {
                         JObject jObject = JObject.Parse(jsonResponse);
-                        if ((bool)jObject["success"])
+                        if ((bool) jObject["success"])
                         {
                             return jObject["data"];
                         }
+
                         throw new Exception(jObject["error"]["message"].ToString());
                     }
                     catch (JsonReaderException)
                     {
                         if (string.IsNullOrEmpty(jsonResponse))
                         {
-                            throw new InvalidDataException("Missing data in request. Please provide all the required information to send messages.");
+                            throw new InvalidDataException(
+                                "Missing data in request. Please provide all the required information to send messages.");
                         }
+
                         throw new Exception(jsonResponse);
                     }
                 }
             }
 
-            throw new WebException($"HTTP Error : {(int)response.StatusCode} {response.StatusCode}");
+            throw new WebException($"HTTP Error : {(int) response.StatusCode} {response.StatusCode}");
         }
 
         private static string CreateDataString(Dictionary<string, object> data)
@@ -287,6 +365,7 @@ namespace SMS
                     {
                         dataString.Append("&");
                     }
+
                     dataString.Append(HttpUtility.UrlEncode(obj.Key));
                     dataString.Append("=");
                     dataString.Append(obj.Value is string[]
@@ -294,6 +373,7 @@ namespace SMS
                         : HttpUtility.UrlEncode(obj.Value.ToString()));
                 }
             }
+
             return dataString.ToString();
         }
     }

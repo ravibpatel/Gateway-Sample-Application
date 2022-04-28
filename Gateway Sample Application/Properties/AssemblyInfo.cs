@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("RBSoft")]
 [assembly: AssemblyProduct("Gateway Sample Application")]
-[assembly: AssemblyCopyright("Copyright © 2018-2021 RBSoft")]
+[assembly: AssemblyCopyright("Copyright © 2018-2022 RBSoft")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

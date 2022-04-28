@@ -31,23 +31,25 @@ namespace SMS
         /// <param name="schedule">Set it to timestamp when you want to send this message.</param>
         /// <param name="isMMS">Set it to true if you want to send MMS message instead of SMS.</param>
         /// <param name="attachments">Comma separated list of image links you want to attach to the message. Only works for MMS messages.</param>
+        /// <param name="prioritize">Set it to true if you want to prioritize this message.</param>
         /// <exception>If there is an error while sending a message.</exception>
         /// <returns>The dictionary containing information about the message.</returns>
         public static Dictionary<string, object> SendSingleMessage(string number, string message, string device = "0",
-            long? schedule = null, bool isMMS = false, string attachments = null)
+            long? schedule = null, bool isMMS = false, string attachments = null, bool prioritize = false)
         {
             var values = new Dictionary<string, object>
             {
-                {"number", number},
-                {"message", message},
-                {"schedule", schedule},
-                {"key", Key},
-                {"devices", device},
-                {"type", isMMS ? "mms" : "sms"},
-                {"attachments", attachments}
+                { "number", number },
+                { "message", message },
+                { "schedule", schedule },
+                { "key", Key },
+                { "devices", device },
+                { "type", isMMS ? "mms" : "sms" },
+                { "attachments", attachments },
+                { "prioritize", prioritize ? 1 : 0 }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"])[0];
+            return GetObjects(GetResponse($"{Server}/services/send.php", values)["messages"])[0];
         }
 
         /// <summary>
@@ -68,15 +70,15 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"messages", JsonConvert.SerializeObject(messages)},
-                {"schedule", schedule},
-                {"key", Key},
-                {"devices", devices},
-                {"option", (int) option},
-                {"useRandomDevice", useRandomDevice}
+                { "messages", JsonConvert.SerializeObject(messages) },
+                { "schedule", schedule },
+                { "key", Key },
+                { "devices", devices },
+                { "option", (int)option },
+                { "useRandomDevice", useRandomDevice }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"]);
+            return GetObjects(GetResponse($"{Server}/services/send.php", values)["messages"]);
         }
 
         /// <summary>
@@ -99,17 +101,17 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"listID", listID},
-                {"message", message},
-                {"schedule", schedule},
-                {"key", Key},
-                {"devices", devices},
-                {"option", (int) option},
-                {"type", isMMS ? "mms" : "sms"},
-                {"attachments", attachments}
+                { "listID", listID },
+                { "message", message },
+                { "schedule", schedule },
+                { "key", Key },
+                { "devices", devices },
+                { "option", (int)option },
+                { "type", isMMS ? "mms" : "sms" },
+                { "attachments", attachments }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/send.php", values)["messages"]);
+            return GetObjects(GetResponse($"{Server}/services/send.php", values)["messages"]);
         }
 
         /// <summary>
@@ -122,11 +124,11 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"id", id}
+                { "key", Key },
+                { "id", id }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"])[0];
+            return GetObjects(GetResponse($"{Server}/services/read-messages.php", values)["messages"])[0];
         }
 
         /// <summary>
@@ -139,33 +141,38 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"groupId", groupID}
+                { "key", Key },
+                { "groupId", groupID }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
+            return GetObjects(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
         }
 
         /// <summary>
         /// Get messages using the status.
         /// </summary>
         /// <param name="status">The status of messages you want to retrieve.</param>
+        /// <param name="deviceID">The deviceID of the device which messages you want to retrieve.</param>
+        /// <param name="simSlot">Sim slot of the device which messages you want to retrieve. Similar to array index. 1st slot is 0 and 2nd is 1.</param>
         /// <param name="startTimestamp">Search for messages sent or received after this time.</param>
         /// <param name="endTimestamp">Search for messages sent or received before this time.</param>
         /// <exception>If there is an error while getting messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] GetMessagesByStatus(string status, long? startTimestamp = null,
+        public static Dictionary<string, object>[] GetMessagesByStatus(string status, int? deviceID = null,
+            int? simSlot = null, long? startTimestamp = null,
             long? endTimestamp = null)
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"status", status},
-                {"startTimestamp", startTimestamp},
-                {"endTimestamp", endTimestamp}
+                { "key", Key },
+                { "status", status },
+                { "deviceID", deviceID },
+                { "simSlot", simSlot },
+                { "startTimestamp", startTimestamp },
+                { "endTimestamp", endTimestamp }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
+            return GetObjects(GetResponse($"{Server}/services/read-messages.php", values)["messages"]);
         }
 
         /// <summary>
@@ -178,11 +185,11 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"id", id}
+                { "key", Key },
+                { "id", id }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/resend.php", values)["messages"])[0];
+            return GetObjects(GetResponse($"{Server}/services/resend.php", values)["messages"])[0];
         }
 
         /// <summary>
@@ -196,34 +203,39 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"groupId", groupID},
-                {"status", status}
+                { "key", Key },
+                { "groupId", groupID },
+                { "status", status }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/resend.php", values)["messages"]);
+            return GetObjects(GetResponse($"{Server}/services/resend.php", values)["messages"]);
         }
 
         /// <summary>
         /// Resend messages using the status.
         /// </summary>
         /// <param name="status">The status of messages you want to resend.</param>
+        /// <param name="deviceID">The deviceID of the device which messages you want to resend.</param>
+        /// <param name="simSlot">Sim slot of the device which messages you want to resend. Similar to array index. 1st slot is 0 and 2nd is 1.</param>
         /// <param name="startTimestamp">Resend messages sent or received after this time.</param>
         /// <param name="endTimestamp">Resend messages sent or received before this time.</param>
         /// <exception>If there is an error while resending messages.</exception>
         /// <returns>The array containing messages.</returns>
-        public static Dictionary<string, object>[] ResendMessagesByStatus(string status, long? startTimestamp = null,
+        public static Dictionary<string, object>[] ResendMessagesByStatus(string status, int? deviceID = null,
+            int? simSlot = null, long? startTimestamp = null,
             long? endTimestamp = null)
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"status", status},
-                {"startTimestamp", startTimestamp},
-                {"endTimestamp", endTimestamp}
+                { "key", Key },
+                { "status", status },
+                { "deviceID", deviceID },
+                { "simSlot", simSlot },
+                { "startTimestamp", startTimestamp },
+                { "endTimestamp", endTimestamp }
             };
 
-            return GetMessages(GetResponse($"{Server}/services/resend.php", values)["messages"]);
+            return GetObjects(GetResponse($"{Server}/services/resend.php", values)["messages"]);
         }
 
         /// <summary>
@@ -239,13 +251,13 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"listID", listID},
-                {"number", number},
-                {"name", name},
-                {"resubscribe", resubscribe ? '1' : '0'},
+                { "key", Key },
+                { "listID", listID },
+                { "number", number },
+                { "name", name },
+                { "resubscribe", resubscribe ? '1' : '0' },
             };
-            JObject jObject = (JObject) GetResponse($"{Server}/services/manage-contacts.php", values)["contact"];
+            JObject jObject = (JObject)GetResponse($"{Server}/services/manage-contacts.php", values)["contact"];
             return jObject.ToObject<Dictionary<string, object>>();
         }
 
@@ -259,12 +271,12 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key},
-                {"listID", listID},
-                {"number", number},
-                {"unsubscribe", '1'}
+                { "key", Key },
+                { "listID", listID },
+                { "number", number },
+                { "unsubscribe", '1' }
             };
-            JObject jObject = (JObject) GetResponse($"{Server}/services/manage-contacts.php", values)["contact"];
+            JObject jObject = (JObject)GetResponse($"{Server}/services/manage-contacts.php", values)["contact"];
             return jObject.ToObject<Dictionary<string, object>>();
         }
 
@@ -277,7 +289,7 @@ namespace SMS
         {
             var values = new Dictionary<string, object>
             {
-                {"key", Key}
+                { "key", Key }
             };
             JToken credits = GetResponse($"{Server}/services/send.php", values)["credits"];
             if (credits.Type != JTokenType.Null)
@@ -288,9 +300,89 @@ namespace SMS
             return "Unlimited";
         }
 
-        private static Dictionary<string, object>[] GetMessages(JToken messagesJToken)
+        /// <summary>
+        /// Send USSD request.
+        /// </summary>
+        /// <param name="request">USSD request you want to execute. e.g. *150#</param>
+        /// <param name="device">The ID of a device you want to use to send this message.</param>
+        /// <param name="simSlot">Sim you want to use for this USSD request. Similar to array index. 1st slot is 0 and 2nd is 1.</param>
+        /// <exception>If there is an error while sending a USSD request.</exception>
+        /// <returns>A dictionary containing details about USSD request that was sent.</returns>
+        public static Dictionary<string, object> SendUssdRequest(string request, int device, int? simSlot = null)
         {
-            JArray jArray = (JArray) messagesJToken;
+            var values = new Dictionary<string, object>
+            {
+                { "key", Key },
+                { "request", request },
+                { "device", device },
+                { "sim", simSlot }
+            };
+
+            JObject jObject = (JObject)GetResponse($"{Server}/services/send-ussd-request.php", values)["request"];
+            return jObject.ToObject<Dictionary<string, object>>();
+        }
+
+        /// <summary>
+        /// Get a USSD request using the ID.
+        /// </summary>
+        /// <param name="id">The ID of a USSD request you want to retrieve.</param>
+        /// <exception>If there is an error while getting a USSD request.</exception>
+        /// <returns>A dictionary containing details about USSD request you requested.</returns>
+        public static Dictionary<string, object> GetUssdRequestByID(int id)
+        {
+            var values = new Dictionary<string, object>
+            {
+                { "key", Key },
+                { "id", id }
+            };
+
+            return GetObjects(GetResponse($"{Server}/services/read-ussd-requests.php", values)["requests"])[0];
+        }
+
+        /// <summary>
+        /// Get USSD requests using the request text.
+        /// </summary>
+        /// <param name="request">The request text you want to look for.</param>
+        /// <param name="deviceID">The deviceID of the device which USSD requests you want to retrieve.</param>
+        /// <param name="simSlot">Sim slot of the device which USSD requests you want to retrieve. Similar to array index. 1st slot is 0 and 2nd is 1.</param>
+        /// <param name="startTimestamp">Search for USSD requests sent after this time.</param>
+        /// <param name="endTimestamp">Search for USSD requests sent before this time.</param>
+        /// <exception>If there is an error while getting USSD requests.</exception>
+        /// <returns>The array containing USSD requests.</returns>
+        public static Dictionary<string, object>[] GetUssdRequests(string request, int? deviceID = null,
+            int? simSlot = null, int? startTimestamp = null, int? endTimestamp = null)
+        {
+            var values = new Dictionary<string, object>
+            {
+                { "key", Key },
+                { "request", request },
+                { "deviceID", deviceID },
+                { "simSlot", simSlot },
+                { "startTimestamp", startTimestamp },
+                { "endTimestamp", endTimestamp }
+            };
+
+            return GetObjects(GetResponse($"{Server}/services/read-ussd-requests.php", values)["requests"]);
+        }
+
+        /// <summary>
+        /// Get all enabled devices.
+        /// </summary>
+        /// <exception>If there is an error while getting devices.</exception>
+        /// <returns>The array containing all enabled devices</returns>
+        public static Dictionary<string, object>[] GetDevices()
+        {
+            var values = new Dictionary<string, object>
+            {
+                { "key", Key }
+            };
+
+            return GetObjects(GetResponse($"{Server}/services/get-devices.php", values)["devices"]);
+        }
+
+        private static Dictionary<string, object>[] GetObjects(JToken messagesJToken)
+        {
+            JArray jArray = (JArray)messagesJToken;
             var messages = new Dictionary<string, object>[jArray.Count];
             for (var index = 0; index < jArray.Count; index++)
             {
@@ -302,7 +394,7 @@ namespace SMS
 
         private static JToken GetResponse(string url, Dictionary<string, object> postData)
         {
-            var request = (HttpWebRequest) WebRequest.Create(url);
+            var request = (HttpWebRequest)WebRequest.Create(url);
             var dataString = CreateDataString(postData);
             var data = Encoding.UTF8.GetBytes(dataString);
 
@@ -316,7 +408,7 @@ namespace SMS
                 stream.Write(data, 0, data.Length);
             }
 
-            var response = (HttpWebResponse) request.GetResponse();
+            var response = (HttpWebResponse)request.GetResponse();
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -326,7 +418,7 @@ namespace SMS
                     try
                     {
                         JObject jObject = JObject.Parse(jsonResponse);
-                        if ((bool) jObject["success"])
+                        if ((bool)jObject["success"])
                         {
                             return jObject["data"];
                         }
@@ -346,7 +438,7 @@ namespace SMS
                 }
             }
 
-            throw new WebException($"HTTP Error : {(int) response.StatusCode} {response.StatusCode}");
+            throw new WebException($"HTTP Error : {(int)response.StatusCode} {response.StatusCode}");
         }
 
         private static string CreateDataString(Dictionary<string, object> data)
